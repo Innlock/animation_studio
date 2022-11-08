@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Страница пользователя. {% endblock %}</h1>
+<hr>
+
+<ul class="list-group">
+<h3> Ваши команды: </h3>
+    {% for team in teams %}
+  <li class="list-group-item">{{ team['Teams'].id_team|string + " - " + team['Teams'].name }}</li>
+    {% endfor %}
+</ul>
+
+<ul class="list-group">
+<h3> Ваши проекты и файлы внутри них: </h3>
+    {% for project in projects1 %}
+  <li style="background-color:#a0b3f3;" class="list-group-item">{{ project['Projects'].name+": "+ project['Files'].name+" "+ project['Files'].version }}</li>
+<span style="background-color:#646f9d;" class="badge badge-primary">{{"В команде: " + project['ProjectsTeams'].id_team|string }}</span>
+    {% endfor %}
+</ul>
+
+<ul class="list-group">
+<h3> Все ваши файлы: </h3>
+    {% for file in files %}
+  <li class="list-group-item">{{ file['Projects'].name+": "+ file['Files'].name+" "+ file['Files'].version}}</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

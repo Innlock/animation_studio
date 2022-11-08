@@ -19,7 +19,6 @@ def show_main_page():
             cursor.execute(f"select count_people_in_project({project['id_project']}) as amount")
             amount_of_people = cursor.fetchone()
             project["amount"] = amount_of_people["amount"]
-    print(projects)
     con.close()
     user_logged = user_id is not None
     return render_template('projects.html', projects=projects, user_logged=user_logged)
@@ -32,17 +31,41 @@ def get_current_id():
     return None
 
 
+@app.route('/user_page', methods=['GET', 'POST'])
+@login_required
+def show_user_page():
+    user_id = get_current_id()
+    user_logged = user_id is not None
+
+    # все команды человека
+    teams = db.session.query(Teams, Employees, TeamsEmployees). \
+        join(TeamsEmployees, TeamsEmployees.id_team == Teams.id_team). \
+        join(Employees, (Employees.id_employee == TeamsEmployees.id_employee) |
+             (Employees.id_employee == Teams.leader)). \
+        filter(Employees.id_employee == user_id).group_by(Employees.id_employee, Teams.id_team).all()
+
+    # все проекты и файлы этого человека внутри команды - projects1 и без - files
+    teams_ids = []
+    for t in teams:
+        teams_ids.append(str(t['Teams'].id_team))
+
+    projects1 = db.session.query(Projects, ProjectsTeams, Files). \
+        join(ProjectsTeams, Projects.id_project == ProjectsTeams.id_project). \
+        filter(ProjectsTeams.id_team.in_(teams_ids)). \
+        join(Files, Files.id_project == Projects.id_project). \
+        filter(Files.id_employee == user_id).all()
+
+    files = db.session.query(Files, Projects).\
+        join(Projects, Projects.id_project == Files.id_project).\
+        filter(Files.id_employee == user_id).group_by(Files.id_file).all()
+
+    return render_template('user_page.html', user_logged=user_logged,
+                           teams=teams, projects1=projects1, files=files)
+
+
 # @app.route('/')
 # def show_main_page():
 #     user_id = get_current_id()
-#
-#     # # все команды человека
-#     # teams = db.session.query(Teams, Employees, TeamsEmployees). \
-#     #     join(TeamsEmployees, TeamsEmployees.id_team == Teams.id_team).\
-#     #     join(Employees, Employees.id_employee == TeamsEmployees.id_employee
-#     #     or Employees.id_employee == Teams.leader).\
-#     #     filter(Employees.id_employee == 1).group_by(Teams.id_team, Employees.id_employee).all()
-#     # print(teams)
 #
 #     # # файлы по проекту
 #     # files = db.session.query(Files, Employees, Projects).\
@@ -59,7 +82,7 @@ def get_current_id():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-def login_page():
+def show_login_page():
     login = request.form.get('login')
     password = request.form.get('password')
     if login and password:
