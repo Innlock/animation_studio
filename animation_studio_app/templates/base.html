@@ -23,12 +23,15 @@
     <nav class="navbar navbar-expand-md navbar-light bg-light d-flex justify-content-between">
         <a class="navbar-brand" href="/">Проекты</a>
         {% if user_logged == true %}
-        <a class="nav-link" href="/logout">Выйти</a>
+        <a class="navbar-brand" href="/">Моя страница</a>
+        <a class="navbar-brand" href="/logout">Выйти</a>
         {% else %}
-        <a class="nav-link" href="/login">Войти</a>
+        <a class="navbar-brand" href="/login">Войти</a>
         {% endif %}
 
     </nav>
+
+
     <div class="container">
         {% for message in get_flashed_messages() %}
         <div class="alert alert-danger">{{ message }}</div>

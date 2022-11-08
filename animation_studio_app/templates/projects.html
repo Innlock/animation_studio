@@ -1,14 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} Проекты студии. {% endblock %}</h1>
-    <hr>
+<h1>{% block title %} Проекты студии. {% endblock %}</h1>
+<hr>
 <!--    pr, empl -> pr -->
-    {% for pr, empl in projects %}
-                <h2>{{ "Проект №"+pr['id_project']|string+" \""+pr['name']+"\"" }}</h2>
+{% for pr in projects %}
+<h2>{{ "Проект №"+pr['id_project']|string+" \""+pr['name']+"\"" }}</h2>
 <!--                вместо pr - empl-->
-                <span style="background-color:#41cbea;" class="badge badge-primary">{{ empl['full_name'] }}</span>
-            </a>
-            <hr>
-    {% endfor %}
+<span style="background-color:#646f9d;" class="badge badge-primary">{{"Руководитель проекта: "+pr['full_name']}}</span>
+<span style="background-color:#3ea9c4;"
+      class="badge badge-primary">{{"Количество работников: "+pr['amount']|string}}</span>
+</a>
+<hr>
+{% endfor %}
 {% endblock %}
