@@ -20,17 +20,14 @@
     <title>{% block title %} {% endblock %}</title>
   </head>
   <body>
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('show_main_page')}}">Проекты</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-            <li class="nav-item">
-            </li>
-            </ul>
-        </div>
+    <nav class="navbar navbar-expand-md navbar-light bg-light d-flex justify-content-between">
+        <a class="navbar-brand" href="/">Проекты</a>
+        {% if user_logged == true %}
+        <a class="nav-link" href="/logout">Выйти</a>
+        {% else %}
+        <a class="nav-link" href="/login">Войти</a>
+        {% endif %}
+
     </nav>
     <div class="container">
         {% for message in get_flashed_messages() %}

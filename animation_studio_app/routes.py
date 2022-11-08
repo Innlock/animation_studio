@@ -22,13 +22,16 @@ from database.models import Projects, Employees, Files, Teams, ProjectsTeams, Te
 #     except Exception:
 #         return None
 
+def get_current_id():
+    if current_user.is_authenticated:
+        user_id = current_user.id_employee
+        return user_id
+    return None
+
 
 @app.route('/')
 def show_main_page():
-    # # id человека
-    # if current_user.is_authenticated:
-    #     id = current_user.id_employee
-    #     print(id)
+    user_id = get_current_id()
 
     # # все команды человека
     # teams = db.session.query(Teams, Employees, TeamsEmployees). \
@@ -47,7 +50,9 @@ def show_main_page():
 
     projects = db.session.query(Projects, Employees). \
         join(Employees, Employees.id_employee == Projects.supervisor).all()
-    return render_template('projects.html', projects=projects)
+
+    user_logged = user_id is not None
+    return render_template('projects.html', projects=projects, user_logged=user_logged)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -94,7 +99,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('show_main_page'))
+    return redirect("/")
 
 
 @app.after_request

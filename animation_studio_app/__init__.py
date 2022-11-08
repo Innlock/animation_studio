@@ -10,6 +10,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:admin@localhost:3306/anima
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 manager = LoginManager(app)
-Bootstrap(app)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# Bootstrap(app)
+
 # db.create_all()
 
