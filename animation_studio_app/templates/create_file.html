@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3>{% block title %} Создание файла. {% endblock %}</h3>
+<form method="POST">
+<ul class="list-group">
+    <input input type="text" name="name" class="form-control" placeholder="Файл 1" />
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <label class="input-group-text" for="inputGroupSelect01">Тип файла</label>
+      </div>
+      <select class="custom-select" id="inputGroupSelect01">
+        <option selected>picture</option>
+        <option>audio</option>
+        <option>animation</option>
+        <option>video</option>
+      </select>
+    </div>
+    <input input type="text" name="version" class="form-control" placeholder="v1" />
+    <input input type="date" name="date" class="form-control" />
+</ul>
+<hr>
+    <button type="submit" class="btn btn-info"}}>Создать файл</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3>{% block title %} Файл №{{ file.id_file|string+" "+file.name}}. {% endblock %}</h3>
+<form method="POST">
+<ul class="list-group">
+    <li input class="list-group-item">{{ "Верисия: "+file.version}}</li>
+    <li input class="list-group-item">{{ "Дата загрузки: "+file.date|string}}</li>
+</ul>
+
+    <button type="submit" class="btn btn-danger"}}>Удалить файл
+            </button>
+</form>
+
+{% endblock %}

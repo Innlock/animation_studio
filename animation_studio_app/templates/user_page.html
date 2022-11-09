@@ -5,24 +5,40 @@
 <hr>
 
 <ul class="list-group">
-<h3> Ваши команды: </h3>
+    <h3> Ваши команды: </h3>
     {% for team in teams %}
-  <li class="list-group-item">{{ team['Teams'].id_team|string + " - " + team['Teams'].name }}</li>
+    <li style="background-color:#7a8cbe; color: white" class="list-group-item">{{ "№"+team['Teams'].id_team|string + " -
+        " + team['Teams'].name }}
+    </li>
     {% endfor %}
 </ul>
-
+<hr>
 <ul class="list-group">
-<h3> Ваши проекты и файлы внутри них: </h3>
+    <h3> Ваши проекты и файлы внутри них: </h3>
+    <a style="background-color:#3ea9c4;" class="btn btn-primary" href="/create_file"
+           role="button">Создать новый файл</a>
+    <hr>
     {% for project in projects1 %}
-  <li style="background-color:#a0b3f3;" class="list-group-item">{{ project['Projects'].name+": "+ project['Files'].name+" "+ project['Files'].version }}</li>
-<span style="background-color:#646f9d;" class="badge badge-primary">{{"В команде: " + project['ProjectsTeams'].id_team|string }}</span>
+    <div>
+        <li style="background-color:#cfd7f3;" class="list-group-item">{{project['Projects'].name+": "+
+            project['Files'].name+" "+ project['Files'].version }}
+        </li>
+        <span class="d-block p-2 text-white" style="background-color:#7a8cbe;">{{"В команде №" + project['ProjectsTeams'].id_team|string }}</span>
+
+        <a style="background-color:#3ea9c4;" class="btn btn-primary" href="/file/{{project['Files'].id_file}}"
+           role="button">Открыть файл</a>
+
+        <hr>
+    </div>
     {% endfor %}
 </ul>
 
 <ul class="list-group">
-<h3> Все ваши файлы: </h3>
+    <h3> Все ваши файлы: </h3>
     {% for file in files %}
-  <li class="list-group-item">{{ file['Projects'].name+": "+ file['Files'].name+" "+ file['Files'].version}}</li>
+    <li style="background-color:#cfd7f3;" class="list-group-item">{{ file['Projects'].name+": "+ file['Files'].name+" "+
+        file['Files'].version}}
+    </li>
     {% endfor %}
 </ul>
 

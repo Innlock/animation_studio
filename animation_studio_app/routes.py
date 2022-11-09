@@ -24,6 +24,27 @@ def show_main_page():
     return render_template('projects.html', projects=projects, user_logged=user_logged)
 
 
+@app.route('/create_file', methods=['GET', 'POST'])
+def create_file():
+    user_id = get_current_id()
+    user_logged = user_id is not None
+    return render_template('create_file.html', user_logged=user_logged)
+
+
+@app.route('/file/<int:id_file>', methods=['GET', 'POST'])
+@login_required
+def show_file(id_file):
+    user_id = get_current_id()
+    user_logged = user_id is not None
+    file = db.session.query(Files).filter(Files.id_file == id_file).one()
+    if request.method == 'POST':
+        if file:
+            db.session.delete(file)
+            db.session.commit()
+            return redirect('/user_page')
+    return render_template('file.html', user_logged=user_logged, file=file)
+
+
 def get_current_id():
     if current_user.is_authenticated:
         user_id = current_user.id_employee
