@@ -3,25 +3,42 @@
 {% block content %}
 
 <h3>{% block title %} Создание файла. {% endblock %}</h3>
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
 <ul class="list-group">
+    <p>*Название.</p>
     <input input type="text" name="name" class="form-control" placeholder="Файл 1" />
+    <p></p>
     <div class="input-group mb-3">
       <div class="input-group-prepend">
         <label class="input-group-text" for="inputGroupSelect01">Тип файла</label>
       </div>
-      <select class="custom-select" id="inputGroupSelect01">
+      <select input class="custom-select" id="inputGroupSelect01" name="type">
         <option selected>picture</option>
         <option>audio</option>
         <option>animation</option>
         <option>video</option>
       </select>
     </div>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+          <label class="input-group-text" for="inputGroupSelect01">Проект</label>
+      </div>
+        <select input class="custom-select" id="inputGroupSelect02" name="project">
+        {% for pr in projects %}
+        <option>{{pr['name']}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <p>Версия.</p>
     <input input type="text" name="version" class="form-control" placeholder="v1" />
+    <p>Дата (можно не заполнять).</p>
     <input input type="date" name="date" class="form-control" />
 </ul>
+    <ul></ul>
+    <input type="file" name="file" class="form-control" id="customFile">
 <hr>
-    <button type="submit" class="btn btn-info"}}>Создать файл</button>
+    <button type="submit" class="btn btn-info" value="Upload"}}>Создать файл</button>
 </form>
 
 {% endblock %}

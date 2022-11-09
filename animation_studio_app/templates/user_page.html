@@ -39,6 +39,8 @@
     <li style="background-color:#cfd7f3;" class="list-group-item">{{ file['Projects'].name+": "+ file['Files'].name+" "+
         file['Files'].version}}
     </li>
+    <a style="background-color:#3ea9c4;" class="btn btn-primary" href="/file/{{ file['Files'].id_file }}"
+           role="button">Открыть файл</a>
     {% endfor %}
 </ul>
 

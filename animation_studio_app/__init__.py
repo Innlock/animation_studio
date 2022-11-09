@@ -11,6 +11,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 manager = LoginManager(app)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['UPLOAD_FOLDER'] = '.\\files'
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'txt', 'jpeg', 'gif'}
 
 # Bootstrap(app)
 

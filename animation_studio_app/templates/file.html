@@ -2,15 +2,47 @@
 
 {% block content %}
 
-<h3>{% block title %} Файл №{{ file.id_file|string+" "+file.name}}. {% endblock %}</h3>
-<form method="POST">
+<h3>{% block title %} Файл №{{ file.id_file|string+" - "+file.name}}. {% endblock %}</h3>
+<form method="POST" enctype="multipart/form-data">
 <ul class="list-group">
-    <li input class="list-group-item">{{ "Верисия: "+file.version}}</li>
-    <li input class="list-group-item">{{ "Дата загрузки: "+file.date|string}}</li>
-</ul>
+    <input input type="text" name="name" class="form-control" value="{{file.name}}" />
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <label class="input-group-text" for="inputGroupSelect01">Тип файла</label>
+      </div>
+      <select input class="custom-select" id="inputGroupSelect01" name="type">
+        <option selected>{{(file.type|string).split('.')[1] }}</option>
+          <option>picture</option>
+        <option>audio</option>
+        <option>animation</option>
+        <option>video</option>
+      </select>
+    </div>
 
-    <button type="submit" class="btn btn-danger"}}>Удалить файл
-            </button>
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+          <label class="input-group-text" for="inputGroupSelect01">Проект</label>
+      </div>
+        <select input class="custom-select" id="inputGroupSelect02" name="project">
+
+        {% for pr in projects if file.id_project == pr.id_project %}
+            <option selected>{{pr['name']}}</option>
+        {% endfor %}
+        {% for pr in projects if file.id_project != pr.id_project %}
+            <option>{{pr['name']}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <input input type="text" name="version" class="form-control" placeholder="v1" value="{{file.version}}"/>
+    <input input type="date" name="date" class="form-control" value="{{file.date}}"/>
+</ul>
+    <ul></ul>
+    <p>Заменить файл.</p>
+    <input type="file" name="file" class="form-control">
+<hr>
+    <a type="button" class="btn btn-info" href="/uploads/{{(file.link|string).split('\\')[2]}}" >Открыть файл</a>
+    <button type="button" class="btn btn-info" value="Upload"}}>Обновить файл</button>
+    <button type="submit" class="btn btn-danger"}}>Удалить файл</button>
 </form>
 
 {% endblock %}
