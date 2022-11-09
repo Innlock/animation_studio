@@ -41,8 +41,8 @@
     <input type="file" name="file" class="form-control">
 <hr>
     <a type="button" class="btn btn-info" href="/uploads/{{(file.link|string).split('\\')[2]}}" >Открыть файл</a>
-    <button type="button" class="btn btn-info" value="Upload"}}>Обновить файл</button>
-    <button type="submit" class="btn btn-danger"}}>Удалить файл</button>
+    <input type="submit" name="button" class="btn btn-info" value="Обновить файл"}}/>
+    <input type="submit" name="button" class="btn btn-danger" value="Удалить файл"}}/>
 </form>
 
 {% endblock %}

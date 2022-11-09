@@ -2,6 +2,7 @@ import os.path
 
 from flask import render_template, request, redirect, flash, url_for, send_from_directory
 from flask_login import login_user, login_required, logout_user, current_user
+from sqlalchemy import update
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -31,12 +32,27 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def get_file_info(new_file, name, user_id, filename):
+        new_file.name = name
+        new_file.id_employee = user_id
+        new_file.id_project = db.session.query(Projects). \
+            filter(Projects.name == request.form.get('project')).one().id_project
+        new_file.date = request.form.get('date')
+        new_file.link = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        new_file.version = request.form.get('version')
+        new_file.type = request.form.get('type')
+        if not new_file.date:
+            new_file.date = None
+        return new_file
+
+
 @app.route('/create_file', methods=['GET', 'POST'])
 @login_required
 def create_file():
     user_id = get_current_id()
     user_logged = user_id is not None
     projects = db.session.query(Projects).all()
+    files_amount = db.session.query(Files.id_file).order_by(Files.id_file.desc()).first().id_file
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('Невозможно прочитать файл')
@@ -46,31 +62,20 @@ def create_file():
             flash('Выберите файл для загрузки')
             return redirect(request.url)
         elif file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+            filename = str(files_amount+1)+"_"+secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            # return redirect(url_for('download_file', name=filename))
             name = request.form.get('name')
             if not name:
                 flash('введите имя')
             else:
-                new_file = Files()
-                new_file.name = name
-                new_file.id_employee = user_id
-                new_file.id_project = db.session.query(Projects).\
-                    filter(Projects.name == request.form.get('project')).one().id_project
-                new_file.date = request.form.get('date')
-                new_file.link = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                new_file.version = request.form.get('version')
-                new_file.type = request.form.get('type')
-                if not new_file.date:
-                    new_file.date = None
+                new_file = get_file_info(Files(), name, user_id, filename)
                 db.session.add(new_file)
                 db.session.commit()
-
     return render_template('create_file.html', user_logged=user_logged, projects=projects)
 
 
 @app.route('/uploads/<name>')
+@login_required
 def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
@@ -83,10 +88,31 @@ def show_file(id_file):
     user_logged = user_id is not None
     file = db.session.query(Files).filter(Files.id_file == id_file).one()
     if request.method == 'POST':
-        if file:
+        button = request.form.get('button')
+        if button == 'Удалить файл':
             db.session.delete(file)
             db.session.commit()
+            if os.path.exists(file.link):
+                os.remove(file.link)
             return redirect('/user_page')
+        elif button == 'Обновить файл':
+            print("ok1")
+            downloaded_file = request.files['file']
+            if downloaded_file.filename == '':
+                print("ok2")
+                filename = file.link.split('\\')[2]
+            elif allowed_file(downloaded_file.filename):
+                print("ok3")
+                filename = str(file.id_file)+"_"+secure_filename(downloaded_file.filename)
+                downloaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                os.remove(file.link)
+            name = request.form.get('name')
+            if not name:
+                flash('введите имя')
+            else:
+                file.id_file = id_file
+                file = get_file_info(file, name, user_id, filename)
+                db.session.commit()
     return render_template('file.html', user_logged=user_logged, file=file, projects=projects)
 
 
