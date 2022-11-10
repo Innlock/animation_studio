@@ -11,6 +11,13 @@ from database.db_connection import get_db_connection
 from database.models import Projects, Employees, Files, Teams, ProjectsTeams, TeamsEmployees
 
 
+def get_current_id():
+    if current_user.is_authenticated:
+        user_id = current_user.id_employee
+        return user_id
+    return None
+
+
 @app.route('/')
 def show_main_page():
     user_id = get_current_id()
@@ -28,22 +35,100 @@ def show_main_page():
     return render_template('projects.html', projects=projects, user_logged=user_logged)
 
 
+def query_with_filters(args):
+    pr, team, empl = args
+    i = 0
+    while i < len(args):
+        if args[i] == 'Не выбрано':
+            args.pop(i)
+        else:
+            i += 1
+    files = db.session.query(Files, Projects, Employees, ProjectsTeams). \
+        join(Projects, Projects.id_project == Files.id_project). \
+        join(Employees, Employees.id_employee == Files.id_employee)
+
+    match len(args):
+        case 3:
+            selected_files = files.filter(
+                Employees.full_name == empl and Projects.name == pr
+                and ProjectsTeams.id_team == team.split(' ')[0]). \
+                group_by(Files.id_file).all()
+        case 2:
+            if pr == 'Не выбрано':
+                selected_files = files.filter(
+                    Employees.full_name == empl
+                    and ProjectsTeams.id_team == team.split(' ')[0]). \
+                    group_by(Files.id_file).all()
+            elif team == 'Не выбрано':
+                selected_files = files.filter(
+                    Employees.full_name == empl and Projects.name == pr). \
+                    group_by(Files.id_file).all()
+            elif empl == 'Не выбрано':
+                selected_files = files.filter(
+                    Projects.name == pr
+                    and ProjectsTeams.id_team == team.split(' ')[0]). \
+                    group_by(Files.id_file).all()
+        case 1:
+            if pr != 'Не выбрано':
+                selected_files = files.filter(
+                    Projects.name == pr). \
+                    group_by(Files.id_file).all()
+            elif team != 'Не выбрано':
+                selected_files = files.filter(
+                    ProjectsTeams.id_team == team.split(' ')[0]). \
+                    group_by(Files.id_file).all()
+            elif empl != 'Не выбрано':
+                selected_files = files.filter(
+                    Employees.full_name == empl). \
+                    group_by(Files.id_file).all()
+        case _:
+            selected_files = ''
+    return selected_files
+
+
+@app.route('/files', methods=['GET', 'POST'])
+def search_for_file():
+    user_id = get_current_id()
+    user_logged = user_id is not None
+    files = db.session.query(Files, Projects, Employees, ProjectsTeams). \
+        join(Projects, Projects.id_project == Files.id_project). \
+        join(Employees, Employees.id_employee == Files.id_employee).all()
+    projects = db.session.query(Projects).all()
+    teams = db.session.query(Teams).all()
+    employees = db.session.query(Employees).all()
+
+    if request.method == 'POST':
+        pr = request.form.get('project')
+        team = request.form.get('team')
+        empl = request.form.get('employee')
+        if pr == team == empl == 'Не выбрано':
+            flash('Выберите фильтры поиска')
+        else:
+            selected_files = query_with_filters([pr, team, empl])
+            return render_template('files.html', files=selected_files,
+                                   employees=employees, teams=teams,
+                                   projects=projects, user_logged=user_logged)
+    return render_template('files.html', files=files,
+                           employees=employees, teams=teams,
+                           projects=projects, user_logged=user_logged)
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_file_info(new_file, name, user_id, filename):
-        new_file.name = name
-        new_file.id_employee = user_id
-        new_file.id_project = db.session.query(Projects). \
-            filter(Projects.name == request.form.get('project')).one().id_project
-        new_file.date = request.form.get('date')
-        new_file.link = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        new_file.version = request.form.get('version')
-        new_file.type = request.form.get('type')
-        if not new_file.date:
-            new_file.date = None
-        return new_file
+    new_file.name = name
+    new_file.id_employee = user_id
+    new_file.id_project = db.session.query(Projects). \
+        filter(Projects.name == request.form.get('project')).one().id_project
+    new_file.date = request.form.get('date')
+    new_file.link = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    new_file.version = request.form.get('version')
+    new_file.type = request.form.get('type')
+    if not new_file.date:
+        new_file.date = None
+    return new_file
 
 
 @app.route('/create_file', methods=['GET', 'POST'])
@@ -62,7 +147,7 @@ def create_file():
             flash('Выберите файл для загрузки')
             return redirect(request.url)
         elif file and allowed_file(file.filename):
-            filename = str(files_amount+1)+"_"+secure_filename(file.filename)
+            filename = str(files_amount + 1) + "_" + secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             name = request.form.get('name')
             if not name:
@@ -96,31 +181,24 @@ def show_file(id_file):
                 os.remove(file.link)
             return redirect('/user_page')
         elif button == 'Обновить файл':
-            print("ok1")
-            downloaded_file = request.files['file']
-            if downloaded_file.filename == '':
-                print("ok2")
-                filename = file.link.split('\\')[2]
-            elif allowed_file(downloaded_file.filename):
-                print("ok3")
-                filename = str(file.id_file)+"_"+secure_filename(downloaded_file.filename)
-                downloaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                os.remove(file.link)
-            name = request.form.get('name')
-            if not name:
-                flash('введите имя')
+            if user_id != file.id_employee:
+                flash('Вы не можете редактировать чужой файл')
             else:
-                file.id_file = id_file
-                file = get_file_info(file, name, user_id, filename)
-                db.session.commit()
+                downloaded_file = request.files['file']
+                if downloaded_file.filename == '':
+                    filename = file.link.split('\\')[2]
+                elif allowed_file(downloaded_file.filename):
+                    filename = str(file.id_file) + "_" + secure_filename(downloaded_file.filename)
+                    downloaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    os.remove(file.link)
+                name = request.form.get('name')
+                if not name:
+                    flash('введите имя')
+                else:
+                    file.id_file = id_file
+                    file = get_file_info(file, name, user_id, filename)
+                    db.session.commit()
     return render_template('file.html', user_logged=user_logged, file=file, projects=projects)
-
-
-def get_current_id():
-    if current_user.is_authenticated:
-        user_id = current_user.id_employee
-        return user_id
-    return None
 
 
 @app.route('/user_page', methods=['GET', 'POST'])
@@ -136,23 +214,24 @@ def show_user_page():
              (Employees.id_employee == Teams.leader)). \
         filter(Employees.id_employee == user_id).group_by(Employees.id_employee, Teams.id_team).all()
 
-    # все проекты и файлы этого человека внутри команды - projects1 и без - files
+    # все проекты и файлы этого человека внутри команды - projects1
     teams_ids = []
     for t in teams:
         teams_ids.append(str(t['Teams'].id_team))
 
-    projects1 = db.session.query(Projects, ProjectsTeams, Files). \
+    projects = db.session.query(Projects, ProjectsTeams, Files). \
         join(ProjectsTeams, Projects.id_project == ProjectsTeams.id_project). \
         filter(ProjectsTeams.id_team.in_(teams_ids)). \
         join(Files, Files.id_project == Projects.id_project). \
         filter(Files.id_employee == user_id).all()
 
-    files = db.session.query(Files, Projects).\
-        join(Projects, Projects.id_project == Files.id_project).\
+    # все проекты и файлы этого человека - files
+    files = db.session.query(Files, Projects). \
+        join(Projects, Projects.id_project == Files.id_project). \
         filter(Files.id_employee == user_id).group_by(Files.id_file).all()
 
     return render_template('user_page.html', user_logged=user_logged,
-                           teams=teams, projects1=projects1, files=files)
+                           teams=teams, projects1=projects, files=files)
 
 
 # @app.route('/')
