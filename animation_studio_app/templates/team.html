@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Команда "{{team[0]['Teams'].name}}" {% endblock %}</h1>
+
+<div class="form-group">
+    <form method="post" enctype=multipart/form-data>
+        <div id="InputsWrapper">
+            <div class="row">
+                <div class="col-md-2"><b>Название команды</b></div>
+                <div class="col-md-10">
+                    <input type="text" name="name" value="{{team[0]['Teams'].name}}" class="form-control colortext" disabled/>
+                </div>
+            </div>
+            {% for empl in team %}
+            <div class="row">
+                <div class="col-md-2">Сотрудник</div>
+                <div class="col-md-6">
+                    <select input class="form-control colortext custom-select" id="inputGroupSelect01" name="employee" disabled>
+                            <option selected>{{empl['Employees'].full_name}}</option>
+                            {% for empl1 in employees %}
+                            <option>{{empl1.full_name}}</option>
+                            {% endfor %}
+                    </select>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <br/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+    </form>
+
+</div>
+{% endblock %}

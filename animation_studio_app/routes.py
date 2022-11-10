@@ -2,7 +2,7 @@ import os.path
 
 from flask import render_template, request, redirect, flash, url_for, send_from_directory
 from flask_login import login_user, login_required, logout_user, current_user
-from sqlalchemy import update, and_
+from sqlalchemy import update, and_, or_
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -46,7 +46,7 @@ def query_with_filters(args):
     print(pr, team, empl)
     files = db.session.query(Files, Projects, Employees, ProjectsTeams). \
         join(Projects, Projects.id_project == Files.id_project). \
-        join(Employees, Employees.id_employee == Files.id_employee).\
+        join(Employees, Employees.id_employee == Files.id_employee). \
         join(ProjectsTeams, Files.id_project == ProjectsTeams.id_project)
 
     match len(args):
@@ -67,7 +67,7 @@ def query_with_filters(args):
                 print(selected_files)
             elif empl == 'Не выбрано':
                 selected_files = files.filter(and_(
-                    Projects.name == pr,ProjectsTeams.id_team == team.split(' ')[0])). \
+                    Projects.name == pr, ProjectsTeams.id_team == team.split(' ')[0])). \
                     group_by(Files.id_file).all()
         case 1:
             if pr != 'Не выбрано':
@@ -136,12 +136,27 @@ def create_team():
             for empl in form_employees:
                 new_team_employee = TeamsEmployees()
                 new_team_employee.id_team = new_team_id
-                new_team_employee.id_employee = db.session.query(Employees).\
+                new_team_employee.id_employee = db.session.query(Employees). \
                     filter(Employees.full_name == empl).first().id_employee
                 new_team_employee.position = "-"
                 db.session.add(new_team_employee)
             db.session.commit()
     return render_template('create_team.html', user_logged=user_logged, employees=employees, user=current_user_info)
+
+
+@app.route('/team/<int:id_team>', methods=['GET', 'POST'])
+@login_required
+def show_team(id_team):
+    user_id = get_current_id()
+    user_logged = user_id is not None
+    employees = db.session.query(Employees).filter(Employees.id_employee != user_id).all()
+    current_user_info = db.session.query(Employees).filter(Employees.id_employee == user_id).one()
+    team = db.session.query(Teams, Employees, TeamsEmployees). \
+        join(TeamsEmployees, TeamsEmployees.id_team == Teams.id_team). \
+        join(Employees,
+             (Employees.id_employee == Teams.leader) | (Employees.id_employee == TeamsEmployees.id_employee)). \
+        filter(Teams.id_team == id_team).group_by(Teams.id_team, Employees.id_employee).all()
+    return render_template('team.html', user_logged=user_logged, employees=employees, user=current_user_info, team=team)
 
 
 def allowed_file(filename):
@@ -286,41 +301,42 @@ def show_user_page():
 
 @app.route('/login', methods=['GET', 'POST'])
 def show_login_page():
-    login = request.form.get('login')
-    password = request.form.get('password')
-    if login and password:
-        user = Employees.query.filter_by(full_name=login).first()
-        if user and user.password == password:  # if user and check_password_hash(user.password, password):
-            login_user(user)
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect(url_for('show_main_page'))
+    if request.method == 'POST':
+        login = request.form.get('login')
+        password = request.form.get('password')
+        if login and password:
+            user = Employees.query.filter_by(full_name=login).first()
+            if user and user.password == password:  # if user and check_password_hash(user.password, password):
+                login_user(user)
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                return redirect(url_for('show_main_page'))
+            else:
+                flash('Введите корректные логин и пароль')
         else:
-            flash('Введите корректные логин и пароль')
-    else:
-        flash('Введите логин и пароль')
+            flash('Введите логин и пароль')
     return render_template('login.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    login = request.form.get('login')
-    password = request.form.get('password')
-    password2 = request.form.get('password2')
     if request.method == 'POST':
-        if not (login or password or password2):
-            flash('Заполните все поля')
-        elif password != password2:
-            flash('Пароли не совпадают')
-        else:
-            # hash_pwd = generate_password_hash(password)
-            # new_user = Employees(full_name=login, password=hash_pwd)
-            new_user = Employees(login, password)
-            db.session.add(new_user)
-            db.session.commit()
-
-            return redirect(url_for('login_page'))
+        login = request.form.get('login')
+        password = request.form.get('password')
+        password2 = request.form.get('password2')
+        if request.method == 'POST':
+            if not (login or password or password2):
+                flash('Заполните все поля')
+            elif password != password2:
+                flash('Пароли не совпадают')
+            else:
+                # hash_pwd = generate_password_hash(password)
+                # new_user = Employees(full_name=login, password=hash_pwd)
+                new_user = Employees(login, password)
+                db.session.add(new_user)
+                db.session.commit()
+                return redirect("/login")
     return render_template('register.html')
 
 

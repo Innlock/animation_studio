@@ -9,9 +9,9 @@
     <a style="background-color:#596f9a; border-color:#596f9a; " class="btn btn-primary" href="/create_team"
        role="button">Создать новую команду</a>
     {% for team in teams %}
-    <li style="background-color:#7a8cbe; color: white" class="list-group-item">{{ "№"+team['Teams'].id_team|string + " -
+    <a style="background-color:#7a8cbe; color: white" class="list-group-item" href="/team/{{team['Teams'].id_team}}">{{ "№"+team['Teams'].id_team|string + " -
         " + team['Teams'].name }}
-    </li>
+    </a>
     {% endfor %}
 </ul>
 <hr>
