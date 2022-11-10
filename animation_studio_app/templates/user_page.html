@@ -6,6 +6,8 @@
 
 <ul class="list-group">
     <h3> Ваши команды: </h3>
+    <a style="background-color:#596f9a; border-color:#596f9a; " class="btn btn-primary" href="/create_team"
+       role="button">Создать новую команду</a>
     {% for team in teams %}
     <li style="background-color:#7a8cbe; color: white" class="list-group-item">{{ "№"+team['Teams'].id_team|string + " -
         " + team['Teams'].name }}
@@ -15,7 +17,7 @@
 <hr>
 <ul class="list-group">
     <h3> Ваши проекты и файлы внутри них: </h3>
-    <a style="background-color:#3ea9c4;" class="btn btn-primary" href="/create_file"
+    <a style="background-color:#3ea9c4; border-color:#3ea9c4;" class="btn btn-primary" href="/create_file"
            role="button">Создать новый файл</a>
     <hr>
     {% for project in projects1 %}
@@ -25,7 +27,7 @@
         </li>
         <span class="d-block p-2 text-white" style="background-color:#7a8cbe;">{{"В команде №" + project['ProjectsTeams'].id_team|string }}</span>
 
-        <a style="background-color:#3ea9c4;" class="btn btn-primary" href="/file/{{project['Files'].id_file}}"
+        <a style="background-color:#3ea9c4; border-color:#3ea9c4;" class="btn btn-primary" href="/file/{{project['Files'].id_file}}"
            role="button">Открыть файл</a>
 
         <hr>

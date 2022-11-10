@@ -13,7 +13,7 @@ manager = LoginManager(app)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = '.\\files'
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'txt', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'txt', 'jpeg', 'mp4'}
 
 # Bootstrap(app)
 

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Создать новую команду {% endblock %}</h1>
+
+<script>
+    $(document).ready(function () {
+
+        var MaxInputs = 10; //maximum input boxes allowed
+        var InputsWrapper = $("#InputsWrapper"); //Input boxes wrapper ID
+        var AddButton = $("#AddMoreFileBox"); //Add button ID
+
+        var x = InputsWrapper.length; //initlal text box count
+        var FieldCount = 1; //to keep track of text box added
+
+        $(AddButton).click(function (e)  //on add input button click
+        {
+            if (x <= MaxInputs) //max input box allowed
+            {
+                FieldCount++; //text box added increment
+                //add input box
+                $(InputsWrapper).append('<div class="row"><div  class="col-md-2" >Сотрудник</div>' +
+                    '<div  class="col-md-6">' +
+                    '<select input class="form-control colortext custom-select" id="inputGroupSelect01" name="employee">'+
+                        '{% for empl in employees %}'+
+                        '<option>{{empl.full_name}}</option>'+
+                        '{% endfor %}'+
+                   ' </select>' +
+                    '</div><a href="#" class="btn btn-danger removeclass">×</a></div>');
+                x++; //text box increment
+            }
+            return false;
+        });
+
+        $("body").on("click", ".removeclass", function (e) { //user click on remove text
+            if (x > 1) {
+                $(this).parent('div').remove(); //remove text box
+                x--; //decrement textbox
+            }
+            return false;
+        })
+
+
+    });
+</script>
+<style>
+    .row {
+        padding: 10px;
+    }
+
+    .colortext {
+        color: #000000; /* Цвет текста */
+    }
+
+    .example-2 .btn-tertiary {
+        color: #555;
+        padding: 0;
+        line-height: 40px;
+        width: 300px;
+        display: block;
+        border: 2px solid #555
+    }
+
+    .example-2 .btn-tertiary:hover, .example-2 .btn-tertiary:focus {
+        color: #888;
+        border-color: #888
+    }
+
+    .example-2 .input-file {
+        width: .1px;
+        height: .1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1
+    }
+
+    .example-2 .input-file + .js-labelFile {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer
+    }
+
+    .example-2 .input-file + .js-labelFile .icon:before {
+        content: "\f093"
+    }
+
+    .example-2 .input-file + .js-labelFile.has-file .icon:before {
+        content: "\f00c";
+        color: #5AAC7B
+    }
+</style>
+
+<p>Создатель команды: {{user.full_name}}</p>
+<div class="form-group">
+    <form method="post" enctype=multipart/form-data>
+        <div id="InputsWrapper">
+            <div class="row">
+                <div class="col-md-2"><b>Название команды</b></div>
+                <div class="col-md-10">
+                    <input type="text" name="name" placeholder="Название" class="form-control colortext"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">Сотрудник</div>
+
+                <div class="col-md-6">
+
+                    <select input class="form-control colortext custom-select" id="inputGroupSelect01" name="employee">
+                        {% for empl in employees %}
+                        <option>{{empl.full_name}}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+                <div>
+                    <button type="button" name="add" id="AddMoreFileBox" class="btn btn-primary">Добавить поле</button>
+                </div>
+            </div>
+        </div>
+        <br/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+        <button type="submit" class="btn btn-primary">Создать команду</button>
+    </form>
+
+</div>
+{% endblock %}

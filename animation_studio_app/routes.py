@@ -113,6 +113,36 @@ def search_for_file():
                            projects=projects, user_logged=user_logged)
 
 
+@app.route('/create_team', methods=['GET', 'POST'])
+@login_required
+def create_team():
+    user_id = get_current_id()
+    user_logged = user_id is not None
+    employees = db.session.query(Employees).filter(Employees.id_employee != user_id).all()
+    current_user_info = db.session.query(Employees).filter(Employees.id_employee == user_id).one()
+    if request.method == 'POST':
+        form_employees = request.form.getlist('employee')
+        name = request.form.get('name')
+        if not name:
+            flash('Введите название команды')
+        else:
+            new_team = Teams()
+            new_team.name = name
+            new_team.leader = user_id
+            db.session.add(new_team)
+            db.session.commit()
+            new_team_id = db.session.query(Teams).filter(Teams.name == name).first().id_team
+            for empl in form_employees:
+                new_team_employee = TeamsEmployees()
+                new_team_employee.id_team = new_team_id
+                new_team_employee.id_employee = db.session.query(Employees).\
+                    filter(Employees.full_name == empl).first().id_employee
+                new_team_employee.position = "-"
+                db.session.add(new_team_employee)
+            db.session.commit()
+    return render_template('create_team.html', user_logged=user_logged, employees=employees, user=current_user_info)
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -156,6 +186,7 @@ def create_file():
                 new_file = get_file_info(Files(), name, user_id, filename)
                 db.session.add(new_file)
                 db.session.commit()
+                return redirect("/user_page")
     return render_template('create_file.html', user_logged=user_logged, projects=projects)
 
 
