@@ -2,7 +2,7 @@ import os.path
 
 from flask import render_template, request, redirect, flash, url_for, send_from_directory
 from flask_login import login_user, login_required, logout_user, current_user
-from sqlalchemy import update
+from sqlalchemy import update, and_
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -43,30 +43,31 @@ def query_with_filters(args):
             args.pop(i)
         else:
             i += 1
+    print(pr, team, empl)
     files = db.session.query(Files, Projects, Employees, ProjectsTeams). \
         join(Projects, Projects.id_project == Files.id_project). \
-        join(Employees, Employees.id_employee == Files.id_employee)
+        join(Employees, Employees.id_employee == Files.id_employee).\
+        join(ProjectsTeams, Files.id_project == ProjectsTeams.id_project)
 
     match len(args):
         case 3:
-            selected_files = files.filter(
-                Employees.full_name == empl and Projects.name == pr
-                and ProjectsTeams.id_team == team.split(' ')[0]). \
+            selected_files = files.filter(and_(
+                Employees.full_name == empl, Projects.name == pr,
+                ProjectsTeams.id_team == team.split(' ')[0])). \
                 group_by(Files.id_file).all()
         case 2:
             if pr == 'Не выбрано':
-                selected_files = files.filter(
-                    Employees.full_name == empl
-                    and ProjectsTeams.id_team == team.split(' ')[0]). \
+                selected_files = files.filter(and_(
+                    Employees.full_name == empl, ProjectsTeams.id_team == team.split(' ')[0])). \
                     group_by(Files.id_file).all()
             elif team == 'Не выбрано':
-                selected_files = files.filter(
-                    Employees.full_name == empl and Projects.name == pr). \
+                selected_files = files.filter(and_(
+                    Employees.full_name == empl, Projects.name == pr)). \
                     group_by(Files.id_file).all()
+                print(selected_files)
             elif empl == 'Не выбрано':
-                selected_files = files.filter(
-                    Projects.name == pr
-                    and ProjectsTeams.id_team == team.split(' ')[0]). \
+                selected_files = files.filter(and_(
+                    Projects.name == pr,ProjectsTeams.id_team == team.split(' ')[0])). \
                     group_by(Files.id_file).all()
         case 1:
             if pr != 'Не выбрано':
