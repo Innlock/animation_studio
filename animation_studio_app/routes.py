@@ -141,6 +141,7 @@ def create_team():
                 new_team_employee.position = "-"
                 db.session.add(new_team_employee)
             db.session.commit()
+            return redirect("/user_page")
     return render_template('create_team.html', user_logged=user_logged, employees=employees, user=current_user_info)
 
 

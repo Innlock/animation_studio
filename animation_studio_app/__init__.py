@@ -15,7 +15,5 @@ app.config['UPLOAD_FOLDER'] = '.\\files'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'txt', 'jpeg', 'mp4'}
 
-# Bootstrap(app)
-
 # db.create_all()
 
